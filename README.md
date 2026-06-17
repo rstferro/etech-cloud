@@ -1,36 +1,133 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-Tech Cloud ⚡
 
-## Getting Started
+SaaS de **PDV + estoque** e **gestão de ordens de serviço** (assistência técnica),
+com tema cyberpunk/dark. Versão web do ecossistema E-Tech, originalmente feito em
+C (PDV) e Python/PyQt6 (O.S.) para uma loja de tecnologia em Pelotas/RS.
 
-First, run the development server:
+> 🧪 Projeto de portfólio full-stack. Um **case study** detalhado virá em breve.
 
+## ✨ Funcionalidades
+- **Dashboard** com métricas e gráficos (Recharts): receita, OS por status, estoque.
+- **CRUD de produtos/estoque** com geração de SKU e alerta de estoque baixo.
+- **Kanban de Ordens de Serviço** com drag-and-drop (@dnd-kit).
+- **Laudo técnico com IA** (Claude) — sugere o diagnóstico a partir do problema.
+- **Autenticação** (Auth.js v5) com papéis (admin / funcionário).
+
+## 🧰 Stack
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 ·
+Prisma 7 + SQLite (libSQL/Turso-ready) · Auth.js v5 · Zod · Recharts · @dnd-kit ·
+Anthropic SDK (Claude).
+
+## 📚 Material de estudo
+Quer entender as tecnologias usadas? Veja [`docs/estudo/`](docs/estudo/README.md)
+(curso em Markdown ancorado no código) ou abra [`docs/estudo.html`](docs/estudo.html)
+no navegador (guia interativo, funciona offline).
+
+---
+
+## 🚀 Como rodar
+
+### Pré-requisitos
+- **Node.js 20+** (o Next 16 exige). Verifique com `node -v`.
+- **Git**.
+- *(Só se a compilação de módulos nativos falhar)* ferramentas de build do seu SO — veja as notas por SO abaixo.
+
+> ⚠️ **Não copie a pasta `node_modules` entre sistemas operacionais.** O
+> `better-sqlite3` é um módulo nativo compilado por SO/arquitetura — rode
+> `npm install` em cada máquina.
+
+### 🪟 Windows (PowerShell)
+```powershell
+git clone https://github.com/rstferro/etech-cloud.git
+cd etech-cloud
+
+Copy-Item .env.example .env   # cria o .env
+npx auth secret               # gera o AUTH_SECRET dentro do .env
+
+npm install
+npx prisma generate           # gera o client do Prisma (src/generated)
+npx prisma migrate dev        # cria o dev.db + aplica as migrations
+npx prisma db seed            # popula dados de demonstração
+
+npm run dev                   # http://localhost:3000
+```
+> Se o `better-sqlite3` não compilar, instale o **Visual Studio Build Tools**
+> (workload "Desktop development with C++") e rode `npm rebuild better-sqlite3`.
+
+### 🍎 macOS (zsh/bash)
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/rstferro/etech-cloud.git
+cd etech-cloud
+
+cp .env.example .env          # cria o .env
+npx auth secret               # gera o AUTH_SECRET dentro do .env
+
+npm install
+npx prisma generate           # gera o client do Prisma (src/generated)
+npx prisma migrate dev        # cria o dev.db + aplica as migrations
+npx prisma db seed            # popula dados de demonstração
+
+npm run dev                   # http://localhost:3000
+```
+> Se o `better-sqlite3` não compilar, instale as ferramentas de linha de comando
+> do Xcode: `xcode-select --install`, depois `npm rebuild better-sqlite3`.
+> (Apple Silicon M1/M2/M3 normalmente usa binário pré-compilado — sem dor.)
+
+### 🐧 Linux (bash)
+```bash
+git clone https://github.com/rstferro/etech-cloud.git
+cd etech-cloud
+
+cp .env.example .env          # cria o .env
+npx auth secret               # gera o AUTH_SECRET dentro do .env
+
+npm install
+npx prisma generate           # gera o client do Prisma (src/generated)
+npx prisma migrate dev        # cria o dev.db + aplica as migrations
+npx prisma db seed            # popula dados de demonstração
+
+npm run dev                   # http://localhost:3000
+```
+> Se o `better-sqlite3` não compilar, instale o toolchain de build:
+> `sudo apt install -y build-essential python3` (Debian/Ubuntu), depois
+> `npm rebuild better-sqlite3`.
+
+> 💡 Por que os passos do Prisma? O banco (`dev.db`), o client gerado
+> (`src/generated`) e o `.env` **não vão pro git** — cada máquina monta o seu.
+
+## 🔐 Contas de demonstração (após o seed)
+| Papel | E-mail | Senha |
+|-------|--------|-------|
+| Admin | `admin@etech.local` | `admin123` |
+| Funcionário | `funcionario@etech.local` | `func123` |
+
+## 🤖 IA (laudo técnico)
+O botão **"✨ Sugerir com IA"** na Ordem de Serviço usa o **Claude**. Por padrão o
+`.env.example` vem com `LAUDO_DEMO="true"`, que gera o laudo **localmente, sem
+custo** (ótimo pra testar e pro deploy). Para usar a IA de verdade, defina sua
+`ANTHROPIC_API_KEY` no `.env` e troque `LAUDO_DEMO` para `"false"`.
+
+## 📜 Scripts
+| Comando | O que faz |
+|---------|-----------|
+| `npm run dev` | servidor de desenvolvimento |
+| `npm run build` | build de produção (checa TypeScript) |
+| `npm run start` | roda o build de produção |
+| `npm run lint` | ESLint |
+| `npx prisma studio` | UI pra ver/editar o banco |
+
+## 🗂️ Estrutura
+```
+src/
+├─ app/            # rotas (App Router) — (auth)/login, (dashboard)/...
+├─ components/     # UI por domínio (ui, dashboard, produtos, ordens)
+├─ lib/
+│  ├─ db/          # camada de dados (queries por domínio)
+│  ├─ auth/        # config do Auth.js
+│  ├─ ai/          # laudo com Claude
+│  └─ validations/ # schemas Zod
+└─ types/          # tipos compartilhados
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Feito com 💜 em Pelotas/RS.
