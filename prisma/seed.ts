@@ -142,6 +142,50 @@ async function main() {
     });
   }
 
+  // ── Vendas de exemplo p/ o gráfico de receita (só se ainda não houver) ──
+  const vendasExistentes = await prisma.sale.count();
+  if (vendasExistentes === 0) {
+    const todosProdutos = await prisma.product.findMany();
+    const hoje = new Date();
+
+    for (let d = 13; d >= 0; d--) {
+      // 1 a 3 vendas em dias pares, 0 a 2 nos ímpares (gera uma curva variada)
+      const qtdVendas = (d % 2 === 0 ? 1 : 0) + Math.floor(Math.random() * 3);
+
+      for (let k = 0; k < qtdVendas; k++) {
+        const dia = new Date(hoje);
+        dia.setDate(hoje.getDate() - d);
+        dia.setHours(9 + k * 2, 15, 0, 0);
+
+        const nItens = 1 + Math.floor(Math.random() * 2);
+        const itens = [];
+        let total = 0;
+        for (let i = 0; i < nItens; i++) {
+          const prod =
+            todosProdutos[Math.floor(Math.random() * todosProdutos.length)];
+          const qtd = 1 + Math.floor(Math.random() * 3);
+          total += prod.salePrice * qtd;
+          itens.push({
+            productId: prod.id,
+            quantity: qtd,
+            unitPrice: prod.salePrice,
+          });
+        }
+
+        await prisma.sale.create({
+          data: {
+            total,
+            createdAt: dia,
+            sellerId: admin.id,
+            customerId: cliente.id,
+            items: { create: itens },
+          },
+        });
+      }
+    }
+    console.log("   Vendas de exemplo criadas (últimos 14 dias).");
+  }
+
   console.log("✅ Seed concluído!");
   console.log("   Login admin:       admin@etech.local / admin123");
   console.log("   Login funcionário: funcionario@etech.local / func123");
