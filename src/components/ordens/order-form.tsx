@@ -1,11 +1,18 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import type { ServiceOrderWithCustomer } from "@/lib/db/service-orders";
 import {
   createOrderAction,
   updateOrderAction,
   deleteOrderAction,
+  suggestLaudoAction,
   type OrderFormState,
 } from "@/app/(dashboard)/ordens/actions";
 
@@ -18,11 +25,13 @@ type CustomerBrief = { id: string; name: string; phone: string | null };
 export function OrderForm({
   order,
   customers,
+  aiEnabled = false,
   onDone,
   onCancel,
 }: {
   order?: ServiceOrderWithCustomer;
   customers: CustomerBrief[];
+  aiEnabled?: boolean;
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -34,6 +43,11 @@ export function OrderForm({
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [isDeleting, startDelete] = useTransition();
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const [diagnosis, setDiagnosis] = useState(order?.diagnosis ?? "");
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [isSuggesting, startSuggest] = useTransition();
 
   useEffect(() => {
     if (state?.ok) onDone();
@@ -47,8 +61,25 @@ export function OrderForm({
     });
   }
 
+  function handleSuggest() {
+    setAiError(null);
+    const fd = new FormData(formRef.current!);
+    const deviceType = String(fd.get("deviceType") ?? "").trim();
+    const deviceModel = String(fd.get("deviceModel") ?? "").trim();
+    const problem = String(fd.get("problem") ?? "").trim();
+    if (!deviceType || problem.length < 3) {
+      setAiError("Preencha o aparelho e o problema primeiro.");
+      return;
+    }
+    startSuggest(async () => {
+      const res = await suggestLaudoAction({ deviceType, deviceModel, problem });
+      if (res.ok) setDiagnosis(res.text);
+      else setAiError(res.error);
+    });
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form ref={formRef} action={formAction} className="flex flex-col gap-4">
       {order && <input type="hidden" name="id" value={order.id} />}
 
       <div className="grid grid-cols-2 gap-4">
@@ -129,17 +160,31 @@ export function OrderForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="diagnosis" className={labelClass}>
-          Laudo técnico
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="diagnosis" className={labelClass}>
+            Laudo técnico
+          </label>
+          {aiEnabled && (
+            <button
+              type="button"
+              onClick={handleSuggest}
+              disabled={isSuggesting}
+              className="rounded-md border border-primary/40 px-2.5 py-1 text-xs text-primary-soft transition hover:bg-primary/10 disabled:opacity-60"
+            >
+              {isSuggesting ? "Gerando…" : "✨ Sugerir com IA"}
+            </button>
+          )}
+        </div>
         <textarea
           id="diagnosis"
           name="diagnosis"
-          rows={2}
-          defaultValue={order?.diagnosis ?? ""}
-          placeholder="Opcional"
+          rows={3}
+          value={diagnosis}
+          onChange={(e) => setDiagnosis(e.target.value)}
+          placeholder={aiEnabled ? "Opcional — ou gere com IA ✨" : "Opcional"}
           className={inputClass}
         />
+        {aiError && <p className="text-xs text-danger">{aiError}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">

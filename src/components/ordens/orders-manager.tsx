@@ -11,9 +11,11 @@ type DialogState = null | { order?: ServiceOrderWithCustomer };
 export function OrdersManager({
   orders,
   customers,
+  aiEnabled = false,
 }: {
   orders: ServiceOrderWithCustomer[];
   customers: CustomerBrief[];
+  aiEnabled?: boolean;
 }) {
   const [dialog, setDialog] = useState<DialogState>(null);
 
@@ -58,6 +60,7 @@ export function OrdersManager({
             <OrderForm
               order={dialog.order}
               customers={customers}
+              aiEnabled={aiEnabled}
               onDone={() => setDialog(null)}
               onCancel={() => setDialog(null)}
             />
