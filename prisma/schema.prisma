@@ -1,0 +1,133 @@
+// E-Tech Cloud — Modelo de dados
+// Banco: SQLite/libSQL (Turso). Ajuste a URL no .env.
+//
+// Rode depois de configurar o .env:
+//   npx prisma generate
+//   npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ───────────────────────── Autenticação / usuários ─────────────────────────
+
+enum Role {
+  ADMIN
+  FUNCIONARIO
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(FUNCIONARIO)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sales         Sale[]
+  serviceOrders ServiceOrder[]
+}
+
+// ───────────────────────────── Estoque / PDV ───────────────────────────────
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique // gerado automaticamente
+  name        String
+  description String?
+  category    String?
+  costPrice   Float    @default(0) // preço de custo
+  salePrice   Float    @default(0) // preço de venda
+  stock       Int      @default(0) // quantidade em estoque
+  minStock    Int      @default(0) // estoque mínimo (alerta de baixo)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  saleItems SaleItem[]
+
+  @@index([category])
+}
+
+model Sale {
+  id        String     @id @default(cuid())
+  total     Float      @default(0)
+  createdAt DateTime   @default(now())
+
+  sellerId String
+  seller   User       @relation(fields: [sellerId], references: [id])
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  items SaleItem[]
+
+  @@index([createdAt])
+}
+
+model SaleItem {
+  id        String @id @default(cuid())
+  quantity  Int    @default(1)
+  unitPrice Float  @default(0) // preço no momento da venda
+
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+// ─────────────────────────── Clientes ──────────────────────────────────────
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales         Sale[]
+  serviceOrders ServiceOrder[]
+
+  @@index([name])
+}
+
+// ─────────────────────── Ordens de serviço (Kanban) ────────────────────────
+
+enum ServiceStatus {
+  RECEBIDO    // recebido
+  EM_ANALISE  // em análise
+  EM_CONSERTO // em conserto
+  PRONTO      // pronto
+  ENTREGUE    // entregue
+}
+
+model ServiceOrder {
+  id          String        @id @default(cuid())
+  code        String        @unique // ex.: OS-0001
+  deviceType  String        // celular, rádio, micro-ondas...
+  deviceModel String?
+  problem     String        // descrição do problema relatado
+  diagnosis   String?       // laudo técnico
+  status      ServiceStatus @default(RECEBIDO)
+  price       Float?        // valor do serviço
+  position    Int           @default(0) // ordem dentro da coluna do Kanban
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deliveredAt DateTime?
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  technicianId String?
+  technician   User?   @relation(fields: [technicianId], references: [id])
+
+  @@index([status])
+}
