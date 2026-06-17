@@ -1,65 +1,104 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <main className="cyber-grid relative flex min-h-screen flex-col items-center justify-center gap-12 px-6 py-20">
+      {/* Cabeçalho */}
+      <header className="flex flex-col items-center gap-5 text-center">
+        <span className="rounded-full border border-border-strong bg-surface-2 px-4 py-1 text-xs font-medium tracking-widest text-muted uppercase">
+          Ecossistema E-Tech · Cloud
+        </span>
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/brand/logo-horizontal-white.png"
+          alt="E-Tech"
+          width={1040}
+          height={360}
           priority
+          className="h-20 w-auto drop-shadow-[0_0_25px_rgba(140,90,255,0.45)] sm:h-24"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <p className="max-w-xl text-balance text-muted">
+          PDV, controle de estoque e ordens de serviço — o sistema da loja de
+          tecnologia, agora na nuvem. 💜
+        </p>
+        <div className="mt-2 flex gap-3">
+          <Link
+            href="/dashboard"
+            className="glow rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition hover:bg-primary-strong"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Acessar dashboard
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-lg border border-border-strong bg-surface-2 px-5 py-2.5 font-medium text-foreground transition hover:border-primary"
           >
-            Documentation
-          </a>
+            Entrar
+          </Link>
         </div>
-      </main>
+      </header>
+
+      {/* Showcase de cards / tokens */}
+      <section className="grid w-full max-w-4xl gap-5 sm:grid-cols-3">
+        <Card title="Vendas no mês" value="R$ 12.480" accent="primary" />
+        <Card title="Estoque baixo" value="2 produtos" accent="warning" />
+        <Card title="OS abertas" value="4 ordens" accent="cyan" />
+      </section>
+
+      {/* Paleta de status */}
+      <section className="flex flex-wrap items-center justify-center gap-3">
+        <Badge className="border-success/40 bg-success/10 text-success">
+          Em estoque
+        </Badge>
+        <Badge className="border-warning/40 bg-warning/10 text-warning">
+          Estoque baixo
+        </Badge>
+        <Badge className="border-danger/40 bg-danger/10 text-danger">
+          Esgotado
+        </Badge>
+        <Badge className="border-neon/40 bg-neon/10 text-neon">Neon</Badge>
+        <Badge className="border-cyan/40 bg-cyan/10 text-cyan">Cyan</Badge>
+      </section>
+    </main>
+  );
+}
+
+function Card({
+  title,
+  value,
+  accent,
+}: {
+  title: string;
+  value: string;
+  accent: "primary" | "warning" | "cyan";
+}) {
+  const ring = {
+    primary: "hover:border-primary",
+    warning: "hover:border-warning",
+    cyan: "hover:border-cyan",
+  }[accent];
+
+  return (
+    <div
+      className={`rounded-xl border border-border bg-surface-2 p-5 transition ${ring}`}
+    >
+      <p className="text-sm text-muted">{title}</p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
     </div>
+  );
+}
+
+function Badge({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`rounded-full border px-3 py-1 text-xs font-medium ${className}`}
+    >
+      {children}
+    </span>
   );
 }
