@@ -115,6 +115,15 @@ npm run test:watch # modo watch
 ```
 Rodam também no **CI** (GitHub Actions) a cada push/PR: lint → testes → build.
 
+## 🐳 Docker
+Imagem de produção multi-stage (Next.js standalone, roda como usuário não-root):
+```bash
+docker build -t etech-cloud .
+docker run -p 3000:3000 --env-file .env etech-cloud   # http://localhost:3000
+```
+O `.env` precisa ao menos de `DATABASE_URL`, `TURSO_AUTH_TOKEN` (se usar Turso) e
+`AUTH_SECRET`. O client do Prisma e o build são gerados dentro da imagem.
+
 ## 🚀 Deploy
 Em produção na **Vercel** com banco **Turso** (libSQL). Passo a passo completo em
 [`docs/deploy.md`](docs/deploy.md).

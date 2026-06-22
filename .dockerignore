@@ -1,0 +1,37 @@
+# deps e build (reinstalados/refeitos dentro da imagem)
+node_modules
+.next
+out
+build
+
+# segredos e banco local — NUNCA entram na imagem
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+dev.db
+
+# client gerado do Prisma (regerado no build)
+src/generated
+
+# git / CI / editor
+.git
+.github
+.gitignore
+.vscode
+.idea
+
+# infra / docs que não afetam o runtime
+Dockerfile
+.dockerignore
+docs
+README.md
+*.md
+!CLAUDE.md
+
+# logs e caches
+npm-debug.log*
+.DS_Store
+coverage
+.turbo
