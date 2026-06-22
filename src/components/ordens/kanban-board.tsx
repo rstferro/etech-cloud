@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -53,10 +53,14 @@ export function KanbanBoard({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  // mantém o board em sincronia com o servidor (após create/edit/delete/revalidate)
-  useEffect(() => {
+  // mantém o board em sincronia com o servidor (após create/edit/delete/revalidate).
+  // Ajuste de state durante o render (padrão React) em vez de useEffect: quando a
+  // prop `orders` muda de referência, reagrupa as colunas na hora.
+  const [prevOrders, setPrevOrders] = useState(orders);
+  if (orders !== prevOrders) {
+    setPrevOrders(orders);
     setColumns(groupByStatus(orders));
-  }, [orders]);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),

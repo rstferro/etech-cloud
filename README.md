@@ -1,8 +1,12 @@
 # E-Tech Cloud ⚡
 
+[![CI](https://github.com/rstferro/etech-cloud/actions/workflows/ci.yml/badge.svg)](https://github.com/rstferro/etech-cloud/actions/workflows/ci.yml)
+
 SaaS de **PDV + estoque** e **gestão de ordens de serviço** (assistência técnica),
 com tema cyberpunk/dark. Versão web do ecossistema E-Tech, originalmente feito em
 C (PDV) e Python/PyQt6 (O.S.) para uma loja de tecnologia em Pelotas/RS.
+
+> 🔗 **Demo ao vivo:** **https://etech-cloud.vercel.app** &nbsp;·&nbsp; entre com `admin@etech.local` / `admin123`
 
 > 🧪 Projeto de portfólio full-stack. Um **case study** detalhado virá em breve.
 
@@ -15,8 +19,8 @@ C (PDV) e Python/PyQt6 (O.S.) para uma loja de tecnologia em Pelotas/RS.
 
 ## 🧰 Stack
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 ·
-Prisma 7 + SQLite (libSQL/Turso-ready) · Auth.js v5 · Zod · Recharts · @dnd-kit ·
-Anthropic SDK (Claude).
+Prisma 7 + libSQL/Turso · Auth.js v5 · Zod · Recharts · @dnd-kit ·
+Anthropic SDK (Claude) · Vitest. Deploy na Vercel.
 
 ## 📚 Material de estudo
 Quer entender as tecnologias usadas? Veja [`docs/estudo/`](docs/estudo/README.md)
@@ -30,11 +34,9 @@ no navegador (guia interativo, funciona offline).
 ### Pré-requisitos
 - **Node.js 20+** (o Next 16 exige). Verifique com `node -v`.
 - **Git**.
-- *(Só se a compilação de módulos nativos falhar)* ferramentas de build do seu SO — veja as notas por SO abaixo.
 
-> ⚠️ **Não copie a pasta `node_modules` entre sistemas operacionais.** O
-> `better-sqlite3` é um módulo nativo compilado por SO/arquitetura — rode
-> `npm install` em cada máquina.
+> ⚠️ **Não copie a pasta `node_modules` entre sistemas operacionais** — rode
+> `npm install` em cada máquina (o `@libsql/client` usa binários nativos por SO/arquitetura).
 
 ### 🪟 Windows (PowerShell)
 ```powershell
@@ -47,12 +49,12 @@ npx auth secret               # gera o AUTH_SECRET dentro do .env
 npm install
 npx prisma generate           # gera o client do Prisma (src/generated)
 npx prisma migrate dev        # cria o dev.db + aplica as migrations
-npx prisma db seed            # popula dados de demonstração
+npm run db:seed               # popula dados de demonstração
 
 npm run dev                   # http://localhost:3000
 ```
-> Se o `better-sqlite3` não compilar, instale o **Visual Studio Build Tools**
-> (workload "Desktop development with C++") e rode `npm rebuild better-sqlite3`.
+> O `@libsql/client` baixa binário pré-compilado no Windows — sem necessidade de
+> ferramentas de build na maioria dos casos.
 
 ### 🍎 macOS (zsh/bash)
 ```bash
@@ -65,13 +67,12 @@ npx auth secret               # gera o AUTH_SECRET dentro do .env
 npm install
 npx prisma generate           # gera o client do Prisma (src/generated)
 npx prisma migrate dev        # cria o dev.db + aplica as migrations
-npx prisma db seed            # popula dados de demonstração
+npm run db:seed               # popula dados de demonstração
 
 npm run dev                   # http://localhost:3000
 ```
-> Se o `better-sqlite3` não compilar, instale as ferramentas de linha de comando
-> do Xcode: `xcode-select --install`, depois `npm rebuild better-sqlite3`.
-> (Apple Silicon M1/M2/M3 normalmente usa binário pré-compilado — sem dor.)
+> O `@libsql/client` traz binário pré-compilado pra macOS (Intel e Apple Silicon)
+> — normalmente sem dor de compilação.
 
 ### 🐧 Linux (bash)
 ```bash
@@ -84,13 +85,12 @@ npx auth secret               # gera o AUTH_SECRET dentro do .env
 npm install
 npx prisma generate           # gera o client do Prisma (src/generated)
 npx prisma migrate dev        # cria o dev.db + aplica as migrations
-npx prisma db seed            # popula dados de demonstração
+npm run db:seed               # popula dados de demonstração
 
 npm run dev                   # http://localhost:3000
 ```
-> Se o `better-sqlite3` não compilar, instale o toolchain de build:
-> `sudo apt install -y build-essential python3` (Debian/Ubuntu), depois
-> `npm rebuild better-sqlite3`.
+> O `@libsql/client` traz binário pré-compilado pra Linux x64/arm64 — normalmente
+> sem necessidade de toolchain de build.
 
 > 💡 Por que os passos do Prisma? O banco (`dev.db`), o client gerado
 > (`src/generated`) e o `.env` **não vão pro git** — cada máquina monta o seu.
@@ -107,6 +107,18 @@ O botão **"✨ Sugerir com IA"** na Ordem de Serviço usa o **Claude**. Por pad
 custo** (ótimo pra testar e pro deploy). Para usar a IA de verdade, defina sua
 `ANTHROPIC_API_KEY` no `.env` e troque `LAUDO_DEMO` para `"false"`.
 
+## 🧪 Testes
+Testes unitários das funções core (geração de SKU e validações Zod) com **Vitest**:
+```bash
+npm test          # roda a suíte uma vez
+npm run test:watch # modo watch
+```
+Rodam também no **CI** (GitHub Actions) a cada push/PR: lint → testes → build.
+
+## 🚀 Deploy
+Em produção na **Vercel** com banco **Turso** (libSQL). Passo a passo completo em
+[`docs/deploy.md`](docs/deploy.md).
+
 ## 📜 Scripts
 | Comando | O que faz |
 |---------|-----------|
@@ -114,7 +126,10 @@ custo** (ótimo pra testar e pro deploy). Para usar a IA de verdade, defina sua
 | `npm run build` | build de produção (checa TypeScript) |
 | `npm run start` | roda o build de produção |
 | `npm run lint` | ESLint |
-| `npx prisma studio` | UI pra ver/editar o banco |
+| `npm test` | testes unitários (Vitest) |
+| `npm run db:push` | aplica o schema no banco |
+| `npm run db:seed` | popula dados de demonstração |
+| `npm run db:studio` | UI pra ver/editar o banco (Prisma Studio) |
 
 ## 🗂️ Estrutura
 ```

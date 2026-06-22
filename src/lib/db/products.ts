@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { categoryPrefix, formatSku } from "@/lib/sku";
 import type { ProductInput } from "@/lib/validations/product";
 
 /** Lista todos os produtos (mais recentes primeiro). */
@@ -8,17 +9,6 @@ export function listProducts() {
 
 export function getProduct(id: string) {
   return prisma.product.findUnique({ where: { id } });
-}
-
-/** Prefixo de 3 letras a partir da categoria (sem acento), ou "GEN". */
-function categoryPrefix(category?: string | null) {
-  if (!category) return "GEN";
-  const norm = category
-    .normalize("NFD") // separa letra-base do acento
-    .replace(/[^\x00-\x7F]/g, "") // remove os acentos (não-ASCII)
-    .toUpperCase()
-    .replace(/[^A-Z]/g, "");
-  return (norm.slice(0, 3) || "GEN").padEnd(3, "X");
 }
 
 /** Gera um SKU único no formato ETC-XXX-0001. */
@@ -32,7 +22,7 @@ export async function generateSku(category?: string | null) {
   let n = count + 1;
   // garante unicidade mesmo se houver buracos na sequência
   for (;;) {
-    const sku = `${base}${String(n).padStart(4, "0")}`;
+    const sku = formatSku(prefix, n);
     const exists = await prisma.product.findUnique({ where: { sku } });
     if (!exists) return sku;
     n++;
