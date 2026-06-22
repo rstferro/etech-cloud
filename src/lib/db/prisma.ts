@@ -1,10 +1,8 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@/generated/prisma/client";
+import { createLibsqlAdapter } from "./adapter";
 
-// Driver adapter do SQLite (Prisma 7). A URL vem do .env (DATABASE_URL).
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL ?? "file:./dev.db",
-});
+// Driver adapter libSQL (Prisma 7). Local-first (file:) ou Turso (libsql://).
+const adapter = createLibsqlAdapter();
 
 // Singleton: reaproveita a instância em dev pra não criar uma conexão nova
 // a cada hot-reload do Next.
