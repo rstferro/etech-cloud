@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Banco fake só pra satisfazer o Prisma config/build; nenhuma query roda no CI.
+      DATABASE_URL: "file:./ci.db"
     steps:
       - uses: actions/checkout@v4
 
@@ -31,6 +34,3 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # Banco fake só pra satisfazer o build; nenhuma query roda no build.
-          DATABASE_URL: "file:./ci.db"
